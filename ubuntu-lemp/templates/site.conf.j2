@@ -1,0 +1,10 @@
+server {
+  listen 80;
+  listen [::]:80;
+  server_name {{ domain }};
+  root /var/www/{{ domain }}/public_html;
+  index index.php index.html index.htm index.nginx-debian.html;
+  location / {
+    try_files $uri $uri/ =404;
+  }
+}

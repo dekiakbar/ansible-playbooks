@@ -1,0 +1,142 @@
+---
+- name: Setup Ubuntu LEMP
+  hosts: all
+
+  vars_prompt:
+
+    - name: username
+      prompt: New admin user to be created (sudoer) 
+      private: no
+
+    - name: password
+      prompt: "password for new admi user"
+
+    - name: web_user
+      prompt: New webroot user name  
+      private: no
+    
+    - name: domain
+      prompt: Insert domain name for nginx block
+      private: no
+
+  tasks:
+
+    - name: Update system
+      apt:
+        update_cache: yes
+        upgrade: 'yes'
+    
+    - name: UFW Allow SSH connections
+      ufw:
+        state: enabled
+        rule: allow
+        name: 'OpenSSH'
+
+    - name: "UFW Allow nginx on port 80"
+      ufw:
+        rule: allow
+        port: "80"
+        proto: tcp
+    
+    - name: Disable password authentication
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        state: present
+        regexp: '^#?PasswordAuthentication'
+        line: 'PasswordAuthentication no'
+
+    - name: Restart ssh service
+      service:
+        name: ssh
+        state: restarted
+    
+    - name: Create a new user with sudo privileges
+      user:
+        name: "{{ username }}"
+        password: "{{ password | password_hash('sha512') }}"
+        state: present
+        groups: sudo
+        append: true
+        create_home: true
+        shell: /bin/bash
+
+    - name: Add local pub key to new admin user
+      authorized_key:
+        user: "{{ username }}"
+        state: present
+        key: "{{ lookup('file', lookup('env','HOME') + '/.ssh/id_rsa.pub') }}"
+
+    - name: Install latest nginx 
+      apt:
+        update_cache: yes
+        name: ['nginx']
+        state: latest
+
+    - name: Create new web user and set home dir to /var/www/{{ domain }}
+      user:
+        name: "{{ web_user }}"
+        home: /var/www/{{ domain }}
+        shell: /bin/bash
+    
+    - name: Add local pub key to new webroot user
+      authorized_key:
+        user: "{{ web_user }}"
+        state: present
+        key: "{{ lookup('file', lookup('env','HOME') + '/.ssh/id_rsa.pub') }}"
+    
+    - name: Create webroot directory
+      file:
+        path: /var/www/{{ domain }}
+        state: directory
+        mode: '0755'
+        owner: "{{ web_user }}"
+        group: "{{ web_user }}"
+
+    - name: Remove default nginx site
+      file:
+        path: /etc/nginx/sites-enabled/default
+        state: absent
+
+    - name: Replicate new site from template
+      template:
+        src: site.conf.j2
+        dest: /etc/nginx/sites-available/{{ domain }}
+        owner: root
+        group: root
+        mode: '0644'
+    
+    - name: Activate the {{ domain }} site
+      file: src=/etc/nginx/sites-available/{{ domain }}
+            dest=/etc/nginx/sites-enabled/{{ domain }}
+            state=link
+
+    - name: Restart nginx service
+      service:
+        name: nginx
+        state: restarted
+
+    - name: copy website example too webroot path
+      synchronize:
+        src: site/
+        dest: /var/www/{{ domain }}/public_html
+        archive: no
+        checksum: yes
+        recursive: yes
+        rsync_opts:
+          - "--chmod=F644"
+
+    - name: Change site owner to {{ web_user }}
+      file:
+        path: /var/www/{{ domain }}/public_html
+        state: directory
+        owner: "{{ web_user }}"
+        group: "{{ web_user }}"
+        mode: '0755'
+
+    - name: Change site file permission
+      file:
+        path: /var/www/{{ domain }}/public_html/index.html
+        state: file
+        owner: "{{ web_user }}"
+        group: "{{ web_user }}"
+        mode: '0644'
