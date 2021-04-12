@@ -1,0 +1,53 @@
+- name: Update Apt
+  apt:
+    update_cache: yes
+
+- name: UFW Allow SSH connections
+  ufw:
+    state: enabled
+    rule: allow
+    name: 'OpenSSH'
+
+- name: Check 'wheel' group
+  group:
+    name: wheel
+    state: present
+
+- name: Allow 'wheel' group to run sudo with no password
+  lineinfile:
+    dest: /etc/sudoers
+    state: present
+    regexp: '^%wheel'
+    line: '%wheel ALL=(ALL) NOPASSWD: ALL'
+    validate: 'visudo -cf %s'
+
+- name: Create a new user with sudo privileges
+  user:
+    name: "{{ username }}"
+    state: present
+    groups: wheel
+    append: true
+    create_home: true
+    shell: /bin/bash
+  notify: Restart ssh service
+
+- name: Add local pub key to new admin user
+  authorized_key:
+    user: "{{ username }}"
+    state: present
+    key: "{{ lookup('file', lookup('env','HOME') + '/.ssh/id_rsa.pub') }}"
+
+- name: Disable password authentication for ssh
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    state: present
+    regexp: '^#?PasswordAuthentication'
+    line: 'PasswordAuthentication no'
+
+- name: Disable root login for ssh
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    state: present
+    regexp: '^#?PermitRootLogin'
+    line: 'PermitRootLogin no'
+  notify: Restart ssh service

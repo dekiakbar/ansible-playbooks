@@ -1,0 +1,22 @@
+- name: Update Apt 
+  apt:
+    update_cache: yes
+
+- name: Install latest nginx 
+  apt:
+    name: 'nginx'
+    state: latest
+  notify: Restart nginx service
+
+- name: enable Nginx
+  service:
+      name: nginx
+      state: started
+      enabled: true
+
+- name: UFW Allow Nginx connections
+  ufw:
+    state: enabled
+    rule: allow
+    name: 'Nginx Full'
+  notify: Restart ssh service

@@ -1,0 +1,13 @@
+- name: Update Apt
+  apt:
+    update_cache: yes
+
+- name: Add multi PHP repository from PPA
+  apt_repository:
+    repo: ppa:ondrej/php
+
+- name: Install PHP and Extension
+  apt:
+    name: "{{ php_packages }}"
+    state: present
+  notify: Restart php fpm

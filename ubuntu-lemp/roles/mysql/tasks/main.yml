@@ -1,0 +1,47 @@
+- name: Update Apt 
+  apt:
+    update_cache: yes
+
+- name: Install latest Mysql-server
+  apt:
+    name: mysql-server
+    state: latest
+  notify: Restart mysql service
+
+- name: enable Mysql
+  service:
+      name: mysql
+      state: started
+      enabled: true
+  
+- name: Install latest Mysql-client 
+  apt:
+    name: mysql-client
+    state: latest
+  notify: Restart mysql service
+
+- name: Installing pip
+  apt:
+    name: python3-pip
+    state: present
+
+- name: Installing pymysql for dependency
+  pip:
+    name: pymysql
+    state: present
+
+- name: Set Mysql root to use native password 
+  shell: mysql -u root -e 'UPDATE mysql.user SET plugin="mysql_native_password" WHERE user="root" AND host="localhost"'
+
+- name: Flush Privileges
+  shell: mysql -u root -e 'FLUSH PRIVILEGES'
+
+- name: Set MySQL root password
+  mysql_user:
+    login_host: 'localhost'
+    login_user: 'root'
+    login_password: ''
+    name: 'root'
+    password: '{{ mysql_root_password }}'
+    state: present
+  notify: Restart mysql service

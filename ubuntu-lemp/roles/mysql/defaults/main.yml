@@ -1,0 +1,3 @@
+# define your mysql root password here
+# please generate strong password use alphanumeric and special character
+mysql_root_password: "@root#123#321"
