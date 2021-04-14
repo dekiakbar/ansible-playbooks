@@ -2,11 +2,11 @@
 # you need to fill a few variable for a new site
 # when new site generated, it will be generate new unique user for web root, mysql user, and mysql database
 # and also nginx server block a.k.a site.conf
-web_user: test1
-web_domain: test1.example.com
-web_mysql_user: test1
-web_mysql_password: "1@password#123"
-web_mysql_database: test1
+web_user: test
+web_domain: test.example.com
+web_mysql_user: test
+web_mysql_password: "@password#123"
+web_mysql_database: test
 
 # make sure php is installed on server host
 # before change the php version
