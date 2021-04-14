@@ -32,9 +32,11 @@
 
 - name: Set Mysql root to use native password 
   shell: mysql -u root -e 'UPDATE mysql.user SET plugin="mysql_native_password" WHERE user="root" AND host="localhost"'
+  when: mysql_root_password is defined
 
 - name: Flush Privileges
   shell: mysql -u root -e 'FLUSH PRIVILEGES'
+  when: mysql_root_password is defined
 
 - name: Set MySQL root password
   mysql_user:
@@ -45,3 +47,7 @@
     password: '{{ mysql_root_password }}'
     state: present
   notify: Restart mysql service
+  when: mysql_root_password is defined
+
+- name: Save mysql root passowd to {{ mysql_root_pass_path }}
+  copy: content="{{ mysql_root_password }}" dest={{ mysql_root_pass_path }}

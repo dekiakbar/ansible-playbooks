@@ -1,0 +1,7 @@
+---
+- name: Setup new server block on nginx
+  hosts: all
+  become: yes
+  become_user: root
+  roles:
+    - new-nginx-block

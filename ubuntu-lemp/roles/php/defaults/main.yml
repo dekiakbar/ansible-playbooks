@@ -1,4 +1,6 @@
-php_version: 7.3
+#define php version for installation
+# available php version : 5.6, 7.0, 7.1, 7.2, 7.3, 7.4, 8.0
+php_version: 7.4
 php_packages:
   - "php{{ php_version }}"
   - "php{{ php_version }}-apcu"

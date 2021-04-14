@@ -1,3 +1,9 @@
 # define your mysql root password here
 # please generate strong password use alphanumeric and special character
 mysql_root_password: "@root#123#321"
+
+# after ansible success change mysql root password, 
+# ansible will write the password for nex process (e.g create new server block)
+# here you can customize the path for store mysql root pass
+# make sure path is same as mysql_root_pass_path in ubuntu-lemp/roles/new-nginx-block/defaults/main.yml 
+mysql_root_pass_path: "/root/ansible_mysql_root.txt"

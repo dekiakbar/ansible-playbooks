@@ -1,0 +1,19 @@
+# Here example varible for new nginx block a.k.a new site
+# you need to fill a few variable for a new site
+# when new site generated, it will be generate new unique user for web root, mysql user, and mysql database
+# and also nginx server block a.k.a site.conf
+web_user: test1
+web_domain: test1.example.com
+web_mysql_user: test1
+web_mysql_password: "1@password#123"
+web_mysql_database: test1
+
+# make sure php is installed on server host
+# before change the php version
+# see and change the configuration ubuntu-lemp/roles/php/defaults/main.
+# e.g 5.6, 7.0, 7.1, 7.2, 7.3, 7.4, 8.0
+php_version: 7.4
+
+# make sure path is same as mysql_root_pass_path in ubuntu-lemp/roles/mysql/defaults/main.yml
+# do not remove this file on server host, it will be reused when you create new server block
+mysql_root_pass_path: "/root/ansible_mysql_root.txt"

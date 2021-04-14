@@ -1,0 +1,121 @@
+- name: get mysql root password from remote file 
+  command: cat {{ mysql_root_pass_path }}
+  register: mysql_root_password
+
+- name: Create a new database for new site
+  mysql_db:
+    login_user: root
+    login_password: "{{ mysql_root_password.stdout }}"
+    name: "{{ web_mysql_database }}"
+    state: present
+
+- name: Create database user and set password
+  mysql_user:
+    login_user: root
+    login_password: "{{ mysql_root_password.stdout }}"
+    name: "{{ web_mysql_user }}"
+    password: "{{ web_mysql_password }}"
+    priv: '{{ web_mysql_database }}.*:ALL'
+    state: present
+
+- name: Create new web user and set home dir to /var/www/{{ web_domain }}
+  user:
+    name: "{{ web_user }}"
+    home: /var/www/{{ web_domain }}
+    shell: /bin/bash
+
+- name: Add local pub key to new webroot user
+  authorized_key:
+    user: "{{ web_user }}"
+    state: present
+    key: "{{ lookup('file', lookup('env','HOME') + '/.ssh/id_rsa.pub') }}"
+
+- name: Create webroot directory
+  file:
+    path: /var/www/{{ web_domain }}
+    state: directory
+    mode: '0755'
+    owner: "{{ web_user }}"
+    group: "{{ web_user }}"
+
+- name: Remove default nginx site
+  file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+
+- name: Configure new site from template
+  template:
+    src: site.conf.j2
+    dest: /etc/nginx/sites-available/{{ web_domain }}
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Configure new pool for nginx
+  template:
+    src: www.conf.j2
+    dest: /etc/php/{{ php_version }}/fpm/pool.d/{{ web_domain }}.conf
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Make public_html dir
+  file:
+    path: /var/www/{{ web_domain }}/public_html
+    state: directory
+
+- name: Activate the {{ web_domain }} site
+  file: src=/etc/nginx/sites-available/{{ web_domain }}
+        dest=/etc/nginx/sites-enabled/{{ web_domain }}
+        state=link
+
+- name: Restart nginx service
+  service:
+    name: nginx
+    state: restarted
+
+- name: Configure new site from template
+  template:
+    src: index.php.j2
+    dest: /var/www/{{ web_domain }}/public_html/index.php
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Change site owner to {{ web_user }}
+  file:
+    path: /var/www/{{ web_domain }}/public_html
+    state: directory
+    owner: "{{ web_user }}"
+    group: "{{ web_user }}"
+    mode: '0755'
+
+- name: Change site file permission
+  file:
+    path: /var/www/{{ web_domain }}/public_html/index.php
+    state: file
+    owner: "{{ web_user }}"
+    group: "{{ web_user }}"
+    mode: '0644'
+  notify: 
+    - Restart nginx service
+    - Restart php fpm
+
+- name: Save credentials to var/www/{{ web_domain }}/credential.txt
+  copy: 
+    content: |
+      web_user = {{ web_user }}
+      web_domain = {{ web_domain }}
+      web_mysql_user = {{ web_mysql_user }}
+      web_mysql_password = {{ web_mysql_password }}
+      web_mysql_database = {{ web_mysql_database }}
+      web_dir = /var/www/{{ web_domain }}/public_html/
+    dest: /var/www/{{ web_domain }}/credential.txt
+
+- name: Change credential file permission
+  file:
+    path: /var/www/{{ web_domain }}/credential.txt
+    state: file
+    owner: "{{ web_user }}"
+    group: "{{ web_user }}"
+    mode: '0644'
