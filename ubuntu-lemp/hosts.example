@@ -1,0 +1,2 @@
+[servers]
+# <your_server_name> ansible_host=<ypur-server-ip>
