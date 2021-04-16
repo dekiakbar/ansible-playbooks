@@ -1,0 +1,8 @@
+- name: Update Apt
+  apt:
+    update_cache: yes
+
+- name: Install composer 
+  apt:
+    name: 'composer'
+    state: latest

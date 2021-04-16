@@ -8,4 +8,5 @@
     - php
     - nginx
     - mysql
+    - composer
     - new-nginx-block
