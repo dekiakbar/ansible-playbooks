@@ -1,0 +1,7 @@
+# override this vars using your domain name and admin email
+certbot_domain: test.example.com
+
+# make sure email is valid
+# when you got "Unable to register an account with ACME server"
+# thats mean ACME server is mark your email is not valid
+certbot_email: admin@example.com

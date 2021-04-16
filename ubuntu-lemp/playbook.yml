@@ -10,3 +10,4 @@
     - mysql
     - composer
     - new-nginx-block
+    - certbot

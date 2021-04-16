@@ -1,0 +1,29 @@
+- name: Install Certbot for Nginx
+  apt:
+    name: python3-certbot-nginx
+    state: present
+
+- name: Generate new certificate for Nginx
+  shell: "certbot --nginx --redirect --noninteractive --agree-tos --email {{ certbot_email }} -d {{ certbot_domain }}"
+
+- name: Run certbot timer
+  service:
+    name:  certbot.timer
+    state: started
+
+- name: Enable HTTP/2 ipv6
+  replace:
+    path: "/etc/nginx/sites-available/{{ certbot_domain }}"
+    regexp: '.*443.*ssl.*ipv6only.*'
+    replace: '    listen [::]:443 ssl http2 ipv6only=on;'
+
+- name: Enable HTTP/2 ipv4
+  replace:
+    path: "/etc/nginx/sites-available/{{ certbot_domain }}"
+    regexp: '.*listen.*443.*ssl;'
+    replace: '    listen 443 ssl http2;'
+
+- name: Start nginx service
+  service:
+    name:  nginx
+    state: restarted
