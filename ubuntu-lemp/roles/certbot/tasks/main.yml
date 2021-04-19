@@ -14,13 +14,13 @@
 - name: Enable HTTP/2 ipv6
   replace:
     path: "/etc/nginx/sites-available/{{ certbot_domain }}"
-    regexp: '.*443.*ssl.*ipv6only.*'
+    regexp: '.listen \[::\]:443.*ssl.*ipv6only=on;'
     replace: '    listen [::]:443 ssl http2 ipv6only=on;'
 
 - name: Enable HTTP/2 ipv4
   replace:
     path: "/etc/nginx/sites-available/{{ certbot_domain }}"
-    regexp: '.*listen.*443.*ssl;'
+    regexp: '.listen.443.ssl;'
     replace: '    listen 443 ssl http2;'
 
 - name: Start nginx service
