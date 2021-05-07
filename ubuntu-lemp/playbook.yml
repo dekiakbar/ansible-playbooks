@@ -4,10 +4,33 @@
   become: yes
   become_user: root
   roles:
-    - harden-security
-    - php
-    - nginx
-    - mysql
-    - composer
-    - new-nginx-block
-    - certbot
+    - role: harden-security
+      # example for override default config var harden-security
+      # vars:
+      #   username: admin
+    - role: php
+      # example for override default config var php
+      # vars:
+      #   php_version: 7.4
+    - role: nginx
+    - role: mysql
+      # example for override default config var mysql
+      # vars:
+      #   mysql_root_password: "@root#123#321"
+      #   mysql_root_pass_path: "/root/ansible_mysql_root.txt"
+    - role: composer
+    - role: new-nginx-block
+      # example for override default config var new-nginx-block
+      # vars:
+      #   web_user: test
+      #   web_domain: example.com
+      #   web_mysql_user: test
+      #   web_mysql_password: "@password#123"
+      #   web_mysql_database: test
+      #   mysql_root_pass_path: "/root/ansible_mysql_root.txt"
+      #   php_version: 7.3
+    - role: certbot
+      # example for override default config var certbot
+      # vars:
+      #   certbot_domain: ansible-playbook.ddns.net
+      #   certbot_email: admin@ansible-playbook.ddns.net

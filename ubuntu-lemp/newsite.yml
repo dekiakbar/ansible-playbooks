@@ -1,8 +1,24 @@
 ---
+# before you run this script make sure
+# you have run playbook.yml, this script will work
+# if you run playbook.yml first
 - name: Setup new server block on nginx
   hosts: all
   become: yes
   become_user: root
   roles:
-    - new-nginx-block
-    - certbot
+    - role: new-nginx-block
+      # example for override default config var new-nginx-block
+      # vars:
+      #   web_user: test
+      #   web_domain: example.certbot_domain
+      #   web_mysql_user: test
+      #   web_mysql_password: "@password#123"
+      #   web_mysql_database: test
+      #   mysql_root_pass_path: "/root/ansible_mysql_root.txt"
+      #   php_version: 7.4
+    - role: certbot
+      # example for override default config var certbot
+      # vars:
+      #   certbot_domain: example.certbot_domain
+      #   certbot_email: admin@example.certbot_domain
